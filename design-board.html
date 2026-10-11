@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neuro Ops Design Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: a briefing board. A dark masthead with the case at a glance, then five chapters (Scenario, Who decides, The data, How it's built, Proof). Each figure is a self-contained panel the team can screenshot into slides. Role colours are fixed across every figure, so a role reads the same everywhere. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --sunk:#F7F8FB; --ink:#0F1A2A; --body:#4A5468; --muted:#7A879B; --line:#E0E5EC; --grid:#EDF0F4;
+  --hero:#0F1A2A; --hero-ink:#F2F5FA; --hero-body:#A9B5C8; --hero-line:#2A3850;
+  --accent:#13978F; --accent2:#5252D6; --grad:linear-gradient(90deg,#24C3B8,#5D5DE5);
+  --crit:#C9302C; --crit-bg:#FCE9E8; --crit-line:#F2BDBB;
+  --warn:#A86A00; --warn-bg:#FDF2D9; --warn-line:#F1D59A;
+  --ok:#17784F; --ok-bg:#E3F3EA; --ok-line:#A7D8BE;
+  /* role colours */
+  --r-sys:#5252D6; --r-sys-bg:#ECEEFD;
+  --r-coord:#0E8C84; --r-coord-bg:#E2F5F3;
+  --r-ops:#C2560A; --r-ops-bg:#FFEEDF;
+  --r-clin:#7C46C9; --r-clin-bg:#F1EAFB;
+  --r-qual:#56637A; --r-qual-bg:#ECEFF4;
+  --r-doc:#17784F; --r-doc-bg:#E3F3EA;
+  --r-orig:#2B6CB0; --r-orig-bg:#E5EFFA;
+  --display:"Nunito Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0B111A; --surface:#141C28; --sunk:#101722; --ink:#E9EEF5; --body:#AFBACB; --muted:#7D8AA0; --line:#243045; --grid:#1C2637;
+  --hero:#060B12; --hero-ink:#F2F5FA; --hero-body:#9AA7BC; --hero-line:#223047;
+  --accent:#45D2C7; --accent2:#9A9AF7;
+  --crit:#FF8C86; --crit-bg:#3A1C1F; --crit-line:#6B2C31;
+  --warn:#F2C35B; --warn-bg:#33290F; --warn-line:#6A5520;
+  --ok:#5FD39C; --ok-bg:#12301F; --ok-line:#245E40;
+  --r-sys:#A3A3FA; --r-sys-bg:#1E2445;
+  --r-coord:#45D2C7; --r-coord-bg:#0F3330;
+  --r-ops:#FFA45C; --r-ops-bg:#36230F;
+  --r-clin:#C29BFA; --r-clin-bg:#2B1D45;
+  --r-qual:#A9B4C6; --r-qual-bg:#222C3C;
+  --r-doc:#5FD39C; --r-doc-bg:#12301F;
+  --r-orig:#7DB6F2; --r-orig-bg:#16283F;
+  color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0B111A; --surface:#141C28; --sunk:#101722; --ink:#E9EEF5; --body:#AFBACB; --muted:#7D8AA0; --line:#243045; --grid:#1C2637;
+  --hero:#060B12; --hero-ink:#F2F5FA; --hero-body:#9AA7BC; --hero-line:#223047;
+  --accent:#45D2C7; --accent2:#9A9AF7;
+  --crit:#FF8C86; --crit-bg:#3A1C1F; --crit-line:#6B2C31;
+  --warn:#F2C35B; --warn-bg:#33290F; --warn-line:#6A5520;
+  --ok:#5FD39C; --ok-bg:#12301F; --ok-line:#245E40;
+  --r-sys:#A3A3FA; --r-sys-bg:#1E2445;
+  --r-coord:#45D2C7; --r-coord-bg:#0F3330;
+  --r-ops:#FFA45C; --r-ops-bg:#36230F;
+  --r-clin:#C29BFA; --r-clin-bg:#2B1D45;
+  --r-qual:#A9B4C6; --r-qual-bg:#222C3C;
+  --r-doc:#5FD39C; --r-doc-bg:#12301F;
+  --r-orig:#7DB6F2; --r-orig-bg:#16283F;
+  color-scheme:dark; }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--body);font-family:var(--display);font-size:15px;line-height:1.55}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;padding-block:0 64px;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{color:var(--ink);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:22px;font-weight:900;line-height:1.2}
+h3{font-size:15.5px;font-weight:800}
+p{margin:0;max-width:70ch}
+.mono{font-family:var(--mono);font-size:.86em;font-weight:600}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.note{font-size:13px;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+a{color:var(--accent2)}
+:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+
+/* ---------- masthead ---------- */
+.hero{background:var(--hero);color:var(--hero-body);margin-inline:-20px;padding-inline:20px;padding-block:34px 26px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--grad)}
+.hero-in{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.hero .eyebrow{color:#7FE3DA}
+.hero h1{color:var(--hero-ink);font-size:clamp(28px,4.4vw,42px);font-weight:900;line-height:1.08;max-width:22ch}
+.hero p{color:var(--hero-body);font-size:16.5px}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:6px}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:520px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{border:1px solid var(--hero-line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .v{font-size:28px;font-weight:900;color:var(--hero-ink);line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .v .to{color:#7FE3DA}
+.kpi .v .bad{color:#FF8C86}
+.kpi .l{font-size:12.5px;color:var(--hero-body)}
+
+/* ---------- nav ---------- */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;margin-inline:-20px;padding-inline:20px;border-bottom:1px solid var(--line)}
+.nav-in{max-width:1080px;margin:0 auto;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.nav a{flex:0 0 auto;text-decoration:none;font-size:13px;font-weight:800;color:var(--ink);border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px}
+.nav a span{font-family:var(--mono);color:var(--accent);margin-right:6px}
+.nav a:hover{border-color:var(--accent)}
+
+/* ---------- chapters & figures ---------- */
+.chapter{display:flex;flex-direction:column;gap:6px;padding-top:18px;scroll-margin-top:70px}
+.chapter .cn{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600}
+.chapter h2{font-size:28px}
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:16px;min-width:0;scroll-margin-top:70px}
+.fig-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 16px;align-items:flex-start}
+.fig-head > div:first-child{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 420px}
+.fignum{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 10px;border:1px solid var(--line);color:var(--ink);background:var(--sunk);white-space:nowrap}
+.chip b{font-family:var(--mono);font-weight:600;color:var(--accent2);margin-right:4px}
+.say{border-left:3px solid var(--accent);background:var(--sunk);padding:10px 14px;border-radius:0 10px 10px 0;color:var(--ink);font-size:14.5px}
+.say .eyebrow{display:block;margin-bottom:2px}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.two > *{min-width:0}
+@media (max-width:820px){.two{grid-template-columns:1fr}}
+
+/* role chips */
+.role{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;border-radius:999px;padding:2px 10px 2px 3px;white-space:nowrap}
+.role i{font-style:normal;font-family:var(--mono);font-size:11px;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--surface)}
+.role.sys{background:var(--r-sys-bg);color:var(--r-sys)} .role.sys i{background:var(--r-sys)}
+.role.coord{background:var(--r-coord-bg);color:var(--r-coord)} .role.coord i{background:var(--r-coord)}
+.role.ops{background:var(--r-ops-bg);color:var(--r-ops)} .role.ops i{background:var(--r-ops)}
+.role.clin{background:var(--r-clin-bg);color:var(--r-clin)} .role.clin i{background:var(--r-clin)}
+.role.qual{background:var(--r-qual-bg);color:var(--r-qual)} .role.qual i{background:var(--r-qual)}
+.role.doc{background:var(--r-doc-bg);color:var(--r-doc)} .role.doc i{background:var(--r-doc)}
+.role.orig{background:var(--r-orig-bg);color:var(--r-orig)} .role.orig i{background:var(--r-orig)}
+.rolelegend{display:flex;flex-wrap:wrap;gap:6px}
+
+/* ---------- scenario timeline ---------- */
+.tl{display:flex;flex-direction:column;gap:0;position:relative}
+.ev{display:grid;grid-template-columns:66px 22px minmax(0,1fr);gap:0 12px;align-items:start}
+.ev .time{font-family:var(--mono);font-weight:600;color:var(--ink);font-size:13.5px;padding-top:12px;text-align:right}
+.ev .rail{position:relative;align-self:stretch;display:flex;justify-content:center}
+.ev .rail:before{content:"";position:absolute;top:0;bottom:0;width:2px;background:var(--line)}
+.ev:first-child .rail:before{top:18px}
+.ev:last-child .rail:before{bottom:calc(100% - 18px)}
+.ev .dot{position:relative;margin-top:14px;width:14px;height:14px;border-radius:50%;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--dc,var(--muted));background:var(--dc,var(--muted))}
+.ev .card{margin:6px 0;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--surface);display:flex;flex-direction:column;gap:6px}
+.ev .card .h{font-weight:800;color:var(--ink);font-size:15px}
+.ev .card .roles{display:flex;flex-wrap:wrap;gap:6px}
+.ev .card .screen{font-size:12.5px;color:var(--muted)}
+.ev .card .screen b{color:var(--body)}
+.ev.alert .card{border-color:var(--crit-line);background:linear-gradient(90deg,var(--crit-bg),var(--surface) 55%)}
+.ev.good .card{border-color:var(--ok-line);background:linear-gradient(90deg,var(--ok-bg),var(--surface) 55%)}
+.ev.branch .card{border-style:dashed;background:var(--sunk)}
+.ev.branch .time{color:var(--muted)}
+.phase{display:grid;grid-template-columns:66px 22px minmax(0,1fr);gap:0 12px}
+.phase span{grid-column:3;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);padding:10px 0 2px}
+@media (max-width:520px){ .ev,.phase{grid-template-columns:48px 18px minmax(0,1fr);gap:0 8px} .ev .time{font-size:12px} }
+
+/* ---------- RACI ---------- */
+.raci{border-collapse:separate;border-spacing:0;width:100%;min-width:820px;font-size:13.5px}
+.raci th,.raci td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}
+.raci th{font-size:11.5px;font-weight:800;color:var(--ink);vertical-align:bottom}
+.raci th .role{font-size:11px}
+.raci td:first-child,.raci th:first-child{text-align:left}
+.raci td:first-child b{color:var(--ink);display:block}
+.raci td:first-child small{color:var(--muted);font-size:12px}
+.L{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;font-family:var(--mono);font-weight:600;font-size:13px}
+.L.A{color:var(--surface);background:var(--rc)}
+.L.R{color:var(--rc);border:2px solid var(--rc);background:var(--surface)}
+.L.I{color:var(--rc);background:var(--rcb)}
+.L.X{color:var(--muted);background:transparent;border:1px dashed var(--line);font-size:11px}
+.c-sys{--rc:var(--r-sys);--rcb:var(--r-sys-bg)} .c-coord{--rc:var(--r-coord);--rcb:var(--r-coord-bg)} .c-ops{--rc:var(--r-ops);--rcb:var(--r-ops-bg)}
+.c-clin{--rc:var(--r-clin);--rcb:var(--r-clin-bg)} .c-qual{--rc:var(--r-qual);--rcb:var(--r-qual-bg)} .c-doc{--rc:var(--r-doc);--rcb:var(--r-doc-bg)} .c-orig{--rc:var(--r-orig);--rcb:var(--r-orig-bg)}
+.raci-key{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:13px}
+.raci-key span{display:inline-flex;gap:6px;align-items:center}
+.raci-key .L{width:24px;height:24px;font-size:11px}
+.quote{border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:13.5px;background:var(--sunk);display:flex;flex-direction:column;gap:4px}
+.quote q{color:var(--ink);font-weight:700}
+.quotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+
+/* ---------- decision flow ---------- */
+.df{display:flex;flex-direction:column;align-items:center;gap:0}
+.df .start{background:var(--ink);color:var(--surface);font-weight:800;border-radius:999px;padding:8px 18px;font-size:14px}
+.df .down{width:2px;height:18px;background:var(--line)}
+.df .q{border:2px solid var(--ink);color:var(--ink);font-weight:800;border-radius:12px;padding:7px 16px;font-size:14px;background:var(--surface)}
+.df .split{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;position:relative;padding-top:18px}
+.df .split:before{content:"";position:absolute;top:0;left:16.6%;right:16.6%;height:2px;background:var(--line)}
+.branch{display:flex;flex-direction:column;align-items:stretch;gap:8px;position:relative;min-width:0}
+.branch:before{content:"";position:absolute;top:-18px;left:50%;width:2px;height:18px;background:var(--line)}
+.bh{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:center}
+.bq{border:2px dashed var(--ink);border-radius:12px;padding:8px 10px;text-align:center;font-weight:800;color:var(--ink);font-size:13.5px}
+.yn{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.yn > div{display:flex;flex-direction:column;gap:6px;min-width:0}
+.yn .lab{font-size:11px;font-weight:800;text-align:center;color:var(--muted)}
+.out{border-radius:12px;padding:9px 10px;font-size:12.5px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--line);background:var(--sunk)}
+.out b{color:var(--ink);font-size:13.5px}
+.out.ops{border-color:var(--r-ops);background:var(--r-ops-bg)}
+.out.coord{border-color:var(--r-coord);background:var(--r-coord-bg)}
+.out.sys{border-color:var(--r-sys);background:var(--r-sys-bg)}
+.out .who{font-weight:800;font-size:11.5px}
+.out.ops .who{color:var(--r-ops)} .out.coord .who{color:var(--r-coord)} .out.sys .who{color:var(--r-sys)}
+@media (max-width:760px){ .df .split{grid-template-columns:1fr;padding-top:10px} .df .split:before{display:none} .branch:before{display:none} }
+
+/* ---------- charts ---------- */
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.ax{fill:var(--muted);font-size:11px;font-family:var(--display);font-weight:700}
+.axl{stroke:var(--line);stroke-width:1}
+.gl{stroke:var(--grid);stroke-width:1}
+.lbl{fill:var(--ink);font-size:12px;font-family:var(--display);font-weight:800}
+.lblm{fill:var(--body);font-size:11.5px;font-family:var(--display);font-weight:700}
+.mono-t{font-family:var(--mono);font-size:11.5px;font-weight:600;fill:var(--ink)}
+.f-mean{fill:var(--r-sys-bg);stroke:var(--r-sys);stroke-width:1}
+.s-p90{stroke:var(--r-sys);stroke-width:2.5;fill:none}
+.f-crit{fill:var(--crit)} .s-crit{stroke:var(--crit)}
+.f-warn{fill:var(--warn)} .s-warn{stroke:var(--warn)}
+.f-ok{fill:var(--ok)} .s-ok{stroke:var(--ok)}
+.f-track{fill:var(--grid)}
+.f-zone-w{fill:var(--warn-bg)} .f-zone-c{fill:var(--crit-bg)}
+.f-bar{fill:var(--r-coord)} .f-bar2{fill:var(--r-sys)} .f-barm{fill:var(--muted)}
+.f-short{fill:var(--crit-bg)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;font-weight:700;color:var(--body)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.sw{width:14px;height:10px;border-radius:3px;display:inline-block}
+.sw.line{height:3px;border-radius:2px}
+
+/* heatmap */
+.hm{border-collapse:separate;border-spacing:3px;font-size:12px;min-width:760px}
+.hm th{font-weight:800;color:var(--ink);font-size:11px;padding:2px;text-align:center}
+.hm th.rot{height:94px;vertical-align:bottom}
+.hm th.rot div{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;margin:0 auto}
+.hm td{width:26px;height:26px;border-radius:6px;text-align:center}
+.hm td.hn{width:auto;text-align:left;font-weight:700;color:var(--ink);padding-right:8px;white-space:nowrap}
+.hm td.on{background:var(--r-coord)}
+.hm td.night{background:var(--r-sys)}
+.hm td.off{background:var(--surface);box-shadow:inset 0 0 0 2px var(--r-doc)}
+.hm td.unav{background:var(--grid);box-shadow:inset 0 0 0 1px var(--line)}
+.hm td.no{background:var(--sunk)}
+.hm td.ct{width:54px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink);background:var(--sunk)}
+.hm td.ct.short{background:var(--crit-bg);color:var(--crit)}
+.hm th.grp{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.hm td.gap{width:8px;background:transparent}
+
+/* eligibility matrix */
+.em{border-collapse:separate;border-spacing:0;width:100%;min-width:760px;font-size:13px}
+.em th,.em td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:center}
+.em th{font-size:11.5px;font-weight:800;color:var(--ink);vertical-align:bottom}
+.em td:first-child,.em th:first-child{text-align:left}
+.em td:first-child b{color:var(--ink)}
+.em tr.win td{background:var(--ok-bg)}
+.pass,.fail{display:inline-flex;width:26px;height:26px;border-radius:8px;align-items:center;justify-content:center;font-weight:900}
+.pass{color:var(--ok);background:var(--ok-bg)}
+.fail{color:var(--surface);background:var(--crit)}
+.em tr.win .pass{background:var(--surface)}
+.res{font-weight:800;font-size:12px;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.res.y{background:var(--ok);color:var(--surface)}
+.res.n{background:var(--crit-bg);color:var(--crit)}
+
+/* waffle */
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.pair{grid-template-columns:1fr}}
+.opt{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--sunk);min-width:0}
+.opt.pick{border:2px solid var(--ok-line);background:var(--ok-bg)}
+.opt .big{font-size:30px;font-weight:900;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums}
+.opt .big small{font-size:14px;font-weight:700;color:var(--body)}
+.waffle{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;max-width:300px}
+.waffle i{aspect-ratio:1;border-radius:5px;background:var(--line)}
+.waffle i.j{background:var(--crit)}
+.opt.pick .waffle i.j{background:var(--ok)}
+
+/* state machine + phone */
+.smwrap{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:18px;align-items:start}
+@media (max-width:860px){.smwrap{grid-template-columns:1fr}}
+.sm{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:640px){.sm{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.st{border-radius:12px;padding:10px 12px;border:1px solid var(--r-sys);background:var(--r-sys-bg);font-size:12.5px;display:flex;flex-direction:column;gap:3px;position:relative}
+.st b{color:var(--ink);font-size:13.5px}
+.st.hm2{background:var(--r-ops-bg);border-color:var(--r-ops)}
+.st.okk{background:var(--ok-bg);border-color:var(--ok)}
+.st.no{background:var(--crit-bg);border-color:var(--crit-line)}
+.st .when{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.smrow{display:flex;flex-direction:column;gap:6px}
+.smrow .eyebrow{font-size:10.5px}
+.phone{border:9px solid var(--ink);border-radius:28px;padding:14px;background:var(--surface);display:flex;flex-direction:column;gap:8px;font-size:13.5px;max-width:300px}
+.phone .ph-top{display:flex;justify-content:space-between;font-size:11.5px;font-weight:700;color:var(--muted)}
+.phone .msg{background:var(--r-sys-bg);border:1px solid var(--r-sys);border-radius:14px 14px 14px 4px;padding:10px 12px;color:var(--ink)}
+.phone .btns{display:flex;gap:8px}
+.phone .btns span{flex:1;text-align:center;border-radius:999px;padding:7px;font-weight:800;font-size:13px}
+.phone .acc{background:var(--grad);color:#fff}
+.phone .dec{border:1px solid var(--line);color:var(--ink)}
+.log{font-family:var(--mono);font-size:11.5px;display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.log span{background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--ink)}
+.log em{color:var(--muted);font-style:normal}
+
+/* architecture */
+.arch{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;position:relative}
+@media (max-width:860px){.arch{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.arch{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:7px;min-width:0;border-radius:14px;padding:10px;background:var(--sunk)}
+.col .ch{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.box{border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:var(--surface);font-size:12.5px}
+.box b{color:var(--ink);display:block;font-size:13.5px}
+.box.adv{border-style:dashed;background:transparent}
+.box.cloud{border:2px solid var(--accent)}
+
+/* tables */
+table.t{border-collapse:collapse;width:100%;font-size:14px}
+table.t th,table.t td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid var(--line)}
+table.t th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800}
+table.t td.k{color:var(--ink);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--sunk);display:flex;flex-direction:column;gap:2px}
+.stat .v{font-size:28px;font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .l{font-size:12.5px}
+footer{font-size:12.5px;color:var(--muted)}
+</style>
+
+
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="hero-in">
+    <span class="eyebrow">Team 1 · Sevaro Challenge 2 · Neuro Ops Command Center</span>
+    <h1>One evening, one approval, two hospitals covered</h1>
+    <p>A Tuesday at 18:20 ET in Sevaro's synthetic network: 12 hospitals, 8 neurologists on shift, 18 open consults. Below is what the tool sees, who decides each step, and the data behind every recommendation.</p>
+    <div class="kpis">
+      <div class="kpi"><span class="v"><span class="bad">10:55</span></span><span class="l">Stroke consult CON-2105 waiting, against a 10-min limit</span></div>
+      <div class="kpi"><span class="v"><span class="bad">5</span> vs 1</span><span class="l">Suncrest consults in the last hour vs its normal busy level</span></div>
+      <div class="kpi"><span class="v">6 → 1</span><span class="l">Off-shift doctors checked → eligible</span></div>
+      <div class="kpi"><span class="v">2 <span class="to">→ 0</span></span><span class="l">Hospitals short after 20:00, before and after one offer</span></div>
+      <div class="kpi"><span class="v">10 <span class="to">→ 5</span></span><span class="l">Calls to the new doctor, out of the next 20</span></div>
+    </div>
+  </div>
+</header>
+
+<nav class="nav" aria-label="Chapters"><div class="nav-in">
+  <a href="#scenario"><span>01</span>The evening</a>
+  <a href="#decides"><span>02</span>Who decides</a>
+  <a href="#data"><span>03</span>The data</a>
+  <a href="#built"><span>04</span>How it's built</a>
+  <a href="#proof"><span>05</span>Proof and rubric</a>
+</div></nav>
+
+<!-- ===================== 01 SCENARIO ===================== -->
+<div class="chapter" id="scenario"><span class="cn">01</span><h2>The evening, minute by minute</h2><p>A case built from Sevaro's supplied data and the answers their team gave us. Each step shows who acts, using the RACI roles Sevaro confirmed.</p></div>
+
+<section class="fig" id="f1">
+  <div class="fig-head"><div><span class="fignum">Fig. 1</span><h3>Scenario: Tuesday, 18:09 to 20:00</h3><p>Times up to 18:20 come from the event data. Times after 18:20 are the demo run: approval 1 minute later, acceptance 3 minutes later, as in our end-to-end test.</p></div>
+    <div class="chips"><span class="chip"><b>3</b>Impact</span><span class="chip"><b>4</b>Presentation</span><span class="chip"><b>1</b>Innovation</span></div></div>
+  <div class="rolelegend">
+    <span class="role sys"><i>S</i>System</span><span class="role coord"><i>C</i>Coordinator</span><span class="role ops"><i>O</i>Ops Lead on duty</span><span class="role clin"><i>CL</i>Clinical Lead</span><span class="role qual"><i>Q</i>Quality Leadership</span><span class="role doc"><i>D</i>Off-shift doctor</span><span class="role orig"><i>P</i>Original physician</span>
+  </div>
+
+  <div class="tl">
+    <div class="phase"><span>Before anyone looks</span></div>
+    <div class="ev"><div class="time">17:41</div><div class="rail"><div class="dot" style="--dc:var(--warn)"></div></div>
+      <div class="card"><span class="h">Suncrest starts filling up</span><span>Five stroke consults arrive at Suncrest Medical Pavilion within the hour. Its normal busy level for 18:00 is one.</span><div class="roles"><span class="role sys"><i>S</i>Detects a surge, raises Suncrest's minimum from 1 to 2</span></div></div></div>
+    <div class="ev"><div class="time">18:09</div><div class="rail"><div class="dot" style="--dc:var(--warn)"></div></div>
+      <div class="card"><span class="h">Stroke consult CON-2105 at Oak Valley, triaged, nobody assigned</span><span>Automatic routing can't find a free credentialed doctor. The stage clock starts.</span><div class="roles"><span class="role sys"><i>S</i>Starts the 5 / 10-min clock</span></div></div></div>
+    <div class="ev"><div class="time">18:12</div><div class="rail"><div class="dot" style="--dc:var(--warn)"></div></div>
+      <div class="card"><span class="h">Dr. Williams goes Temporarily Unavailable while holding stroke consult CON-2110</span><span>The consult now sits with someone who can't act on it.</span><div class="roles"><span class="role sys"><i>S</i>Stops counting him toward coverage</span></div></div></div>
+    <div class="ev alert"><div class="time">18:19</div><div class="rail"><div class="dot" style="--dc:var(--crit)"></div></div>
+      <div class="card"><span class="h">CON-2105 passes its 10-minute critical limit</span><div class="roles"><span class="role sys"><i>S</i>Sends an internal alert automatically. Low risk, no approval needed.</span><span class="role coord"><i>I</i>Coordinator is informed</span></div></div></div>
+
+    <div class="phase"><span>18:20 · The coordinator opens the tool</span></div>
+    <div class="ev alert"><div class="time">18:20</div><div class="rail"><div class="dot" style="--dc:var(--r-coord)"></div></div>
+      <div class="card"><span class="h">Top card: "Act on this first": CON-2105, escalate</span><span>Unassigned stroke consult, 10:55 in Triaged against a 10-minute limit. No normal fix is available fast enough.</span><div class="roles"><span class="role coord"><i>R</i>Coordinator requests the escalation</span><span class="role ops"><i>A</i>Ops Lead authorizes</span><span class="role clin"><i>I</i>Clinical Lead informed</span><span class="role qual"><i>I</i>Quality informed</span></div><span class="screen"><b>Screen:</b> Operations coordinator tab, top card</span></div></div>
+    <div class="ev alert"><div class="time">18:20</div><div class="rail"><div class="dot" style="--dc:var(--r-sys)"></div></div>
+      <div class="card"><span class="h">Coverage projection: Suncrest and Northfield short after 20:00</span><span>Two doctors leave at 19:00 and four at 20:00. Both hospitals drop to 1 credentialed doctor against a minimum of 2.</span><div class="roles"><span class="role sys"><i>S</i>Checks all 6 off-shift doctors against 7 rules. Only Dr. Okafor passes.</span></div><span class="screen"><b>Screen:</b> coverage grid (red ▲ short) and "Split shift: who can be called in"</span></div></div>
+    <div class="ev"><div class="time">18:20</div><div class="rail"><div class="dot" style="--dc:var(--r-coord)"></div></div>
+      <div class="card"><span class="h">Coordinator proposes a split shift to Dr. Grace Okafor</span><span>18:20–21:20, Suncrest and Northfield only, online by 18:35.</span><div class="roles"><span class="role coord"><i>R</i>Coordinator proposes</span><span class="role sys"><i>S</i>Logs who was considered and why</span></div></div></div>
+    <div class="ev"><div class="time">18:21</div><div class="rail"><div class="dot" style="--dc:var(--r-ops)"></div></div>
+      <div class="card"><span class="h">Ops Lead approves. The offer is sent.</span><span>The approver sees the exact message (no patient details) and every doctor considered, then decides in one step without consulting anyone.</span><div class="roles"><span class="role ops"><i>A</i>Ops Lead approves</span><span class="role clin"><i>I</i>Clinical Lead informed</span><span class="role qual"><i>I</i>Quality informed</span><span class="role sys"><i>S</i>Sends the offer, which expires at 18:31</span></div><span class="screen"><b>Screen:</b> Approver tab</span></div></div>
+    <div class="ev branch"><div class="time">18:26?</div><div class="rail"><div class="dot" style="--dc:var(--muted)"></div></div>
+      <div class="card"><span class="h">If the Ops Lead hadn't answered within 5 minutes</span><span>The request moves up to a backup approver in the leadership chain, and the coordinator is informed.</span></div></div>
+    <div class="ev good"><div class="time">18:23</div><div class="rail"><div class="dot" style="--dc:var(--ok)"></div></div>
+      <div class="card"><span class="h">Dr. Okafor accepts on her phone</span><span>Coverage is recomputed. Both short hospitals are covered (2 → 0). Other offers for this gap stop. She is routable only at Suncrest and Northfield and starts at the team's median consult count, so she isn't flooded.</span><div class="roles"><span class="role doc"><i>D</i>Doctor accepts</span><span class="role sys"><i>S</i>Activates coverage and logs it</span></div><span class="screen"><b>Screen:</b> Off-shift neurologist tab → back to Coordinator</span></div></div>
+    <div class="ev branch"><div class="time">18:23?</div><div class="rail"><div class="dot" style="--dc:var(--muted)"></div></div>
+      <div class="card"><span class="h">If she had declined</span><span>She is excluded for the day. Nobody else passes every rule, so the gap goes to escalation. No rule is bent.</span></div></div>
+    <div class="ev"><div class="time">18:25</div><div class="rail"><div class="dot" style="--dc:var(--r-coord)"></div></div>
+      <div class="card"><span class="h">Coordinator reassigns CON-2110 away from Dr. Williams</span><span>The coordinator owns this, so no approval is needed. The app suggests the doctor whose move costs other at-risk hospitals the least backup, and the handoff keeps the consult's original clock.</span><div class="roles"><span class="role coord"><i>R</i><span style="margin-left:-2px">+A</span> Coordinator decides</span><span class="role orig"><i>I</i>Dr. Williams told automatically: "CON-2110 was reassigned from you at 18:25"</span><span class="role qual"><i>I</i>Quality informed</span></div></div></div>
+
+    <div class="phase"><span>New data keeps arriving</span></div>
+    <div class="ev"><div class="time">18:29</div><div class="rail"><div class="dot" style="--dc:var(--r-sys)"></div></div>
+      <div class="card"><span class="h">A new batch of events is loaded, with no restart</span><span>A new consult, CON-2119, appears unassigned. CON-2109 is assigned to Dr. Torres. A duplicate event is dropped and a late event is put back in time order. The loop starts again at Detect.</span><div class="roles"><span class="role sys"><i>S</i>Validates, de-duplicates, replays, re-ranks</span></div><span class="screen"><b>Screen:</b> sidebar "Load new events"</span></div></div>
+    <div class="ev good"><div class="time">18:35</div><div class="rail"><div class="dot" style="--dc:var(--ok)"></div></div>
+      <div class="card"><span class="h">Dr. Okafor is online</span></div></div>
+    <div class="ev good"><div class="time">20:00</div><div class="rail"><div class="dot" style="--dc:var(--ok)"></div></div>
+      <div class="card"><span class="h">Shift change, and both hospitals are still covered</span><span>Without the offer, Suncrest and Northfield would each have had one credentialed neurologist against a minimum of two.</span></div></div>
+  </div>
+  <div class="say"><span class="eyebrow">Say it like this</span>"At 6:20 the coordinator sees one card telling her what to do first. By 6:23 the next two hours are covered, with one approval and one tap on a phone."</div>
+</section>
+
+<!-- ===================== 02 WHO DECIDES ===================== -->
+<div class="chapter" id="decides"><span class="cn">02</span><h2>Who decides what</h2><p>We proposed a RACI model to Sevaro and they confirmed it, along with who approves, who is informed, and who stays out of the loop.</p></div>
+
+<section class="fig" id="f2">
+  <div class="fig-head"><div><span class="fignum">Fig. 2</span><h3>RACI for every intervention, per Sevaro's answers</h3><p>R does the work. A makes the decision. C gives input first. I is told afterwards. Sevaro said nobody needs to be consulted before these real-time decisions.</p></div>
+    <div class="chips"><span class="chip"><b>5</b>Feasibility</span><span class="chip"><b>1</b>Innovation</span></div></div>
+  <div class="raci-key">
+    <span><span class="L A c-ops">A</span>Accountable, approves</span><span><span class="L R c-coord">R</span>Responsible, does it</span><span><span class="L I c-qual">I</span>Informed afterwards</span><span><span class="L X">—</span>Not involved</span>
+  </div>
+  <div class="scroll">
+  <table class="raci">
+    <thead><tr>
+      <th>Intervention</th>
+      <th><span class="role sys"><i>S</i>System</span></th>
+      <th><span class="role coord"><i>C</i>Coordinator</span></th>
+      <th><span class="role ops"><i>O</i>Ops Lead</span></th>
+      <th><span class="role clin"><i>CL</i>Clinical Lead</span></th>
+      <th><span class="role qual"><i>Q</i>Quality</span></th>
+      <th><span class="role orig"><i>P</i>Original MD</span></th>
+      <th>Hospital</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><b>Internal alert</b><small>Small, safe, automatic</small></td>
+        <td><span class="L A c-sys">R</span></td><td><span class="L I c-coord">I</span></td><td><span class="L X">—</span></td><td><span class="L X">—</span></td><td><span class="L X">—</span></td><td><span class="L X">—</span></td><td><span class="L X">—</span></td></tr>
+      <tr><td><b>Reassign a consult</b><small>No approval needed</small></td>
+        <td><span class="L X">—</span></td><td><span class="L A c-coord">R·A</span></td><td><span class="L X">—</span></td><td><span class="L X">—</span></td><td><span class="L I c-qual">I</span></td><td><span class="L I c-orig">I</span></td><td><span class="L X">—</span></td></tr>
+      <tr><td><b>Split-shift offer</b><small>Nothing reaches a doctor without approval</small></td>
+        <td><span class="L X">—</span></td><td><span class="L R c-coord">R</span></td><td><span class="L A c-ops">A</span></td><td><span class="L I c-clin">I</span></td><td><span class="L I c-qual">I</span></td><td><span class="L X">—</span></td><td><span class="L X">—</span></td></tr>
+      <tr><td><b>Escalation</b><small>When the normal fix isn't available</small></td>
+        <td><span class="L X">—</span></td><td><span class="L R c-coord">R</span></td><td><span class="L A c-ops">A</span></td><td><span class="L I c-clin">I</span></td><td><span class="L I c-qual">I</span></td><td><span class="L X">—</span></td><td><span class="L X">—</span></td></tr>
+      <tr><td><b>Approval not answered in 5 min</b><small>Tiers up the leadership chain</small></td>
+        <td><span class="L R c-sys">R</span></td><td><span class="L I c-coord">I</span></td><td><span class="L X">—</span></td><td><span class="L X">—</span></td><td><span class="L X">—</span></td><td><span class="L X">—</span></td><td><span class="L X">—</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">For approval timeouts, the Accountable role is the next tier in the leadership chain. The brief names the Clinical Lead as approver, and Sevaro later said Ops Leads make real-time decisions, so the approver is a sidebar setting in the app. The off-shift doctor isn't in the RACI because they only accept or decline. Hospitals see who completed each consult in a monthly report, not in real time.</p>
+  <div class="quotes">
+    <div class="quote"><span class="eyebrow">Sevaro on approvers</span><q>Ops leaders will be decision makers. Clinical leaders should be informed.</q></div>
+    <div class="quote"><span class="eyebrow">Sevaro on the original doctor</span><q>They are informed afterwards that it was reassigned.</q><span class="note">Sent automatically.</span></div>
+    <div class="quote"><span class="eyebrow">Sevaro on hospitals</span><q>Real-time insight is for Sevaro clinical and ops leadership.</q></div>
+    <div class="quote"><span class="eyebrow">Sevaro on the log</span><q>Precisely. Event driven.</q><span class="note">Every offer status change is its own timestamped event.</span></div>
+  </div>
+</section>
+
+<section class="fig" id="f3">
+  <div class="fig-head"><div><span class="fignum">Fig. 3</span><h3>Decision flow: from a problem to the person who owns it</h3><p>Every problem the tool finds goes down one of three paths. The colour of each outcome shows who decides it.</p></div>
+    <div class="chips"><span class="chip"><b>4</b>Presentation</span><span class="chip"><b>5</b>Feasibility</span></div></div>
+  <div class="df">
+    <div class="start">Problem detected</div><div class="down"></div>
+    <div class="q">What kind of problem?</div>
+    <div class="split">
+      <div class="branch">
+        <span class="bh">A consult is past its time limit</span>
+        <div class="bq">Can an eligible on-shift doctor take it?</div>
+        <div class="yn">
+          <div><span class="lab">YES</span><div class="out coord"><span class="who">COORDINATOR DECIDES</span><b>Reassign</b>Runs at once. The original doctor and Quality are informed.</div></div>
+          <div><span class="lab">NO</span><div class="out ops"><span class="who">OPS LEAD AUTHORIZES</span><b>Escalate</b>Clinical Lead and Quality are informed.</div></div>
+        </div>
+      </div>
+      <div class="branch">
+        <span class="bh">A hospital will be short in 2 h</span>
+        <div class="bq">Does anyone pass all 7 rules?</div>
+        <div class="yn">
+          <div><span class="lab">YES</span><div class="out ops"><span class="who">OPS LEAD APPROVES</span><b>Split-shift offer</b>Sent, then tracked: accept, decline or expire.</div></div>
+          <div><span class="lab">NO</span><div class="out ops"><span class="who">OPS LEAD AUTHORIZES</span><b>Escalate</b>Never bend a rule to fill a gap.</div></div>
+        </div>
+        <span class="note" style="text-align:center">Same path for stroke and general neuro gaps, as Sevaro confirmed.</span>
+      </div>
+      <div class="branch">
+        <span class="bh">Low-risk signal</span>
+        <div class="bq">Small and safe?</div>
+        <div class="out sys"><span class="who">SYSTEM, AUTOMATIC</span><b>Internal alert</b>Goes to the coordinator. No approval, because no doctor is messaged.</div>
+      </div>
+    </div>
+    <div class="down" style="margin-top:12px"></div>
+    <div class="start" style="background:var(--accent)">↺ Recompute and check again until fixed</div>
+  </div>
+</section>
+
+<section class="fig" id="f4">
+  <div class="fig-head"><div><span class="fignum">Fig. 4</span><h3>The offer's life, and what the doctor sees</h3><p>Every path ends somewhere safe: filled, escalated, or offered to the next doctor with a fresh approval.</p></div>
+    <div class="chips"><span class="chip"><b>2</b>Technical</span><span class="chip"><b>5</b>Feasibility</span></div></div>
+  <div class="smwrap">
+    <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+      <div class="smrow"><span class="eyebrow">Main path</span>
+        <div class="sm">
+          <div class="st"><b>Proposed</b>Top eligible doctor<span class="when">coordinator · t+0</span></div>
+          <div class="st hm2"><b>Waiting for approval</b>5 min, then backup<span class="when">ops lead</span></div>
+          <div class="st"><b>Sent</b>Expires in 10 min<span class="when">system</span></div>
+          <div class="st okk"><b>Accepted</b>Coverage up, other offers stop<span class="when">doctor</span></div>
+        </div></div>
+      <div class="smrow"><span class="eyebrow">Every other ending</span>
+        <div class="sm">
+          <div class="st no"><b>Rejected</b>Nothing is sent</div>
+          <div class="st no"><b>Declined</b>Next doctor, new approval</div>
+          <div class="st no"><b>Expired</b>Treated as a decline</div>
+          <div class="st no"><b>Two accept</b>First wins, second told "already filled"</div>
+        </div></div>
+      <div><span class="eyebrow">Audit log written by the demo run</span>
+        <div class="log" style="margin-top:6px"><span>proposed_split_shift</span><em>→</em><span>coverage_context</span><em>→</em><span>approved</span><em>→</em><span>offer_sent_simulated</span><em>→</em><span>accepted</span><em>→</em><span>coverage_activated</span></div></div>
+    </div>
+    <div class="phone" aria-label="Offer as the doctor sees it">
+      <div class="ph-top"><span>18:21</span><span>Doctor's phone</span></div>
+      <strong style="color:var(--ink);font-size:16px">Good evening, Dr. Okafor</strong>
+      <div class="msg"><b>New split-shift offer</b><br>Suncrest Medical Pavilion, Northfield Medical<br>18:20 – 21:20 ET · online by 18:35</div>
+      <span class="note">No patient names, consult IDs or diagnoses. Expires in 10 min.</span>
+      <div class="btns"><span class="acc">Accept</span><span class="dec">Decline</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 03 DATA ===================== -->
+<div class="chapter" id="data"><span class="cn">03</span><h2>The data behind each recommendation</h2><p>Every chart is computed from Sevaro's supplied synthetic files at the 18:20 snapshot.</p></div>
+
+<div class="two">
+<section class="fig" id="f5">
+  <div class="fig-head"><div><span class="fignum">Fig. 5</span><h3>Suncrest's surge</h3><p>The hourly baseline from 12 sampled weeks, against what arrived in the last hour.</p></div></div>
+  <div class="chart" id="c-surge"></div>
+  <div class="legend"><span><span class="sw" style="background:var(--r-sys-bg);border:1px solid var(--r-sys)"></span>Average per hour</span><span><span class="sw line" style="background:var(--r-sys)"></span>Normal busy level (p90)</span><span><span class="sw" style="background:var(--crit)"></span>Last 60 min</span></div>
+  <p class="note">5 arrivals against a p90 of 1, so Suncrest's minimum goes from 1 to 2 credentialed doctors.</p>
+</section>
+
+<section class="fig" id="f6">
+  <div class="fig-head"><div><span class="fignum">Fig. 6</span><h3>Time in stage vs. the limit</h3><p>Open consults whose stage has a stated limit, shown as a share of the critical limit.</p></div></div>
+  <div class="chart" id="c-timers"></div>
+  <div class="legend"><span><span class="sw" style="background:var(--warn-bg);border:1px solid var(--warn-line)"></span>Warning zone</span><span><span class="sw" style="background:var(--crit-bg);border:1px solid var(--crit-line)"></span>Past critical</span></div>
+  <p class="note">Limits come from the app's help text. Stages without a stated limit are left out.</p>
+</section>
+</div>
+
+<section class="fig" id="f7">
+  <div class="fig-head"><div><span class="fignum">Fig. 7</span><h3>Credential depth: who can cover each hospital, now and after 20:00</h3><p>Sevaro's mentor said the root problem is surges in a few hospital systems "where credentialing limits who can help," and asked us to show credential depth, not just headcount.</p></div>
+    <div class="chips"><span class="chip"><b>3</b>Impact</span><span class="chip"><b>1</b>Innovation</span></div></div>
+  <div class="scroll" id="c-heat"></div>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--r-coord)"></span>Credentialed, on shift now</span>
+    <span><span class="sw" style="background:var(--r-sys)"></span>Credentialed, night shift starts 19:00 or 20:00</span>
+    <span><span class="sw" style="background:var(--surface);box-shadow:inset 0 0 0 2px var(--r-doc)"></span>Credentialed, off shift</span>
+    <span><span class="sw" style="background:var(--grid);box-shadow:inset 0 0 0 1px var(--line)"></span>Credentialed, temporarily unavailable</span>
+  </div>
+  <p class="note">Counts are scheduled credentialed headcount against the 16:00–22:00 minimum, with Suncrest raised by 1 for its surge. Dr. Okafor (PHY-009) is credentialed at both of the hospitals that go short.</p>
+</section>
+
+<section class="fig" id="f8">
+  <div class="fig-head"><div><span class="fignum">Fig. 8</span><h3>The next two hours, before and after one accepted offer</h3><p>Scheduled credentialed doctors at the two hospitals that go short. The dashed line is the minimum required.</p></div>
+    <div class="chips"><span class="chip"><b>3</b>Impact</span><span class="chip"><b>2</b>Technical</span></div></div>
+  <div class="two">
+    <div class="chart" id="c-cov-005"></div>
+    <div class="chart" id="c-cov-008"></div>
+  </div>
+  <div class="legend"><span><span class="sw line" style="background:var(--crit)"></span>Without the offer</span><span><span class="sw line" style="background:var(--ok)"></span>With Dr. Okafor (online 18:35)</span><span><span class="sw" style="background:var(--crit-bg)"></span>Short</span></div>
+  <p class="note">Future values are scheduled headcount, not a promise that each doctor will be free. The urgent stroke consult still needs escalation now. This offer fixes the next two hours.</p>
+</section>
+
+<section class="fig" id="f9">
+  <div class="fig-head"><div><span class="fignum">Fig. 9</span><h3>Eligibility: every off-shift doctor, every rule</h3><p>The coordinator and approver see why each doctor can or can't help, not just the winning name.</p></div>
+    <div class="chips"><span class="chip"><b>1</b>Innovation</span><span class="chip"><b>5</b>Feasibility</span></div></div>
+  <div class="scroll" id="c-elig"></div>
+  <p class="note">Offer: 18:20–21:20 (3 h). The roster has no weekly offer counts, so the last rule passes for everyone. Among eligible doctors, the ranking is: most short hospitals covered, then fastest online, then fewest hours this week, then fewest recent declines.</p>
+</section>
+
+<section class="fig" id="f10">
+  <div class="fig-head"><div><span class="fignum">Fig. 10</span><h3>Two routing protections no one asked for</h3><p>Both come from looking past the least-busy doctor.</p></div>
+    <div class="chips"><span class="chip"><b>1</b>Innovation</span><span class="chip"><b>3</b>Impact</span></div></div>
+  <div class="two">
+    <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+      <h3>Don't swamp the new doctor</h3>
+      <p class="note">Routing favours whoever has the fewest consults. A doctor who has just joined has zero, so we start her at the team median instead.</p>
+      <div class="chart" id="c-load"></div>
+      <div class="pair">
+        <div class="opt"><span class="eyebrow">Default routing</span><div class="big">10<small> of 20 calls</small></div><div class="waffle" id="w1"></div></div>
+        <div class="opt pick"><span class="eyebrow">Our plan</span><div class="big">5<small> of 20 calls</small></div><div class="waffle" id="w2"></div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+      <h3>Spend the scarce doctor last</h3>
+      <p class="note">When reassigning, both candidates pass every hard rule. We then count how many other at-risk hospitals would lose their last eligible backup.</p>
+      <div class="chart" id="c-scarce"></div>
+      <p class="note">Controlled test case CON-2200. The least busy doctor, Dr. Patel, would cost two hospitals their last backup. Dr. Ramirez costs one, so she gets the consult.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 04 BUILT ===================== -->
+<div class="chapter" id="built"><span class="cn">04</span><h2>How it's built</h2></div>
+
+<section class="fig" id="f11">
+  <div class="fig-head"><div><span class="fignum">Fig. 11</span><h3>Architecture: raw events in, a ranked fix and its workflow out</h3><p>The rules make every decision. Nine ML models are loaded, but they only advise and are hidden when their inputs are incomplete.</p></div>
+    <div class="chips"><span class="chip"><b>2</b>Technical</span><span class="chip"><b>5</b>Feasibility</span></div></div>
+  <div class="arch">
+    <div class="col"><span class="ch">1 · Inputs</span>
+      <div class="box"><b>Event stream</b>1,163 events: calls, video, imaging, notes</div>
+      <div class="box"><b>Rosters and credentials</b>8 on shift, 6 off shift, 12 hospitals</div>
+      <div class="box"><b>Coverage minimums</b>Per hospital and time block</div>
+      <div class="box"><b>Baseline volume</b>Average and p90 per hour</div>
+      <div class="box" style="border-color:var(--accent)"><b>New events, live</b>CSV upload, no restart</div></div>
+    <div class="col"><span class="ch">2 · Clean and rebuild</span>
+      <div class="box"><b>Validate</b>Bad file rejected, app keeps running</div>
+      <div class="box"><b>De-duplicate</b>By <span class="mono">event_id</span> only</div>
+      <div class="box"><b>Re-order</b>By <span class="mono">event_time</span>, late events flagged</div>
+      <div class="box"><b>Rebuild state</b>Each consult's own clock. Each doctor's real activity from call, video, camera and agent signals.</div></div>
+    <div class="col"><span class="ch">3 · Detect and decide</span>
+      <div class="box"><b>Stage timers</b>Tighter for stroke</div>
+      <div class="box"><b>2-hour coverage</b>Shift ends, night starts, surge +1</div>
+      <div class="box"><b>7 hard rules</b>Per off-shift doctor</div>
+      <div class="box"><b>Ranking</b>With scarce credentials protected</div>
+      <div class="box adv"><b>9 ML models</b>Advisory only, never change the decision</div></div>
+    <div class="col"><span class="ch">4 · Act and show</span>
+      <div class="box"><b>Action store</b>Proposals, approvals, timeouts, replies</div>
+      <div class="box"><b>Audit log</b>Event-driven, downloadable CSV</div>
+      <div class="box"><b>5 screens</b>Coordinator · Approver · Doctor's phone · Audit log · Compare</div>
+      <div class="box cloud"><b>Streamlit Community Cloud</b>Python 3.11 · pandas · scikit-learn · no secrets needed</div></div>
+  </div>
+</section>
+
+<!-- ===================== 05 PROOF ===================== -->
+<div class="chapter" id="proof"><span class="cn">05</span><h2>Proof, limits, and the rubric</h2></div>
+
+<section class="fig" id="f12">
+  <div class="fig-head"><div><span class="fignum">Fig. 12</span><h3>Tested, honest, and ready to connect</h3></div>
+    <div class="chips"><span class="chip"><b>2</b>Technical</span><span class="chip"><b>5</b>Feasibility</span></div></div>
+  <div class="stats">
+    <div class="stat"><span class="v">0</span><span class="l">mismatches against Sevaro's 18:20 reference snapshot</span></div>
+    <div class="stat"><span class="v">11</span><span class="l">existing test scripts, run by one command</span></div>
+    <div class="stat"><span class="v">9</span><span class="l">focused regression scenarios</span></div>
+    <div class="stat"><span class="v">30</span><span class="l">automated checks on the real interface</span></div>
+    <div class="stat"><span class="v">6,641</span><span class="l">consults replayed in a separate benchmark</span></div>
+  </div>
+  <div class="two">
+    <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+      <h3>A benchmark result we kept, even though it doesn't flatter us</h3>
+      <div class="chart" id="c-bench"></div>
+      <p class="note">Mean queue wait, capped at 120 min, over the same 6,641 replayed consults. A "specialized" care policy made waits much worse. ML ranking barely moved them. So rules stay in charge, and the models only advise.</p>
+    </div>
+    <div style="min-width:0">
+      <h3 style="margin-bottom:6px">From demo to production</h3>
+      <table class="t">
+        <thead><tr><th>Demo today</th><th>Swap in</th></tr></thead>
+        <tbody>
+          <tr><td>CSV event upload</td><td class="k">Live Synapse / OneCall feed</td></tr>
+          <tr><td>Credential CSV</td><td class="k">Credentialing system with expiry</td></tr>
+          <tr><td>Role tabs</td><td class="k">Single sign-on with real roles</td></tr>
+          <tr><td>Simulated message</td><td class="k">Physician app or paging, with receipts</td></tr>
+          <tr><td>In-memory offers</td><td class="k">Durable store, so two acceptances can't collide</td></tr>
+        </tbody>
+      </table>
+      <p class="note" style="margin-top:8px">The engine stays the same. No time savings or patient outcomes are claimed, because they weren't measured.</p>
+    </div>
+  </div>
+</section>
+
+<section class="fig" id="f13">
+  <div class="fig-head"><div><span class="fignum">Map</span><h3>Which figure to show for each judging criterion</h3></div></div>
+  <div class="scroll">
+  <table class="t">
+    <thead><tr><th>Criterion</th><th>Strongest evidence</th><th>Figures</th></tr></thead>
+    <tbody>
+      <tr><td class="k">1 · Innovation</td><td>Closes the loop from a problem to an approved, tracked fix. Protects scarce credentials. Keeps the new doctor from being swamped.</td><td class="num">1, 3, 7, 10</td></tr>
+      <tr><td class="k">2 · Technical</td><td>Replay that matches the reference snapshot. Live upload without restart. Hard rules. Event-driven audit log. Cloud deployment.</td><td class="num">4, 6, 8, 11, 12</td></tr>
+      <tr><td class="k">3 · Healthcare impact</td><td>A stroke consult past its limit is ranked first. Two hospitals that would drop below minimum after 20:00 are covered.</td><td class="num">1, 5, 7, 8</td></tr>
+      <tr><td class="k">4 · Presentation</td><td>One evening told minute by minute, with each person's job colour-coded.</td><td class="num">1, 3</td></tr>
+      <tr><td class="k">5 · Feasibility</td><td>RACI confirmed by Sevaro. Human approval built in. Every rule is explainable. Each production swap is named.</td><td class="num">2, 4, 9, 12</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<footer>Synthetic demonstration. This is an independent hackathon prototype, not a Sevaro product or a clinical system. Sources: Sevaro's supplied data files (baseline_hourly_volume, coverage_requirements, credentialing_matrix, physician rosters, 18:20 snapshots), Sevaro's clarification answers, and the team's DECISIONS.md, SCOPE_AND_LIMITS.md, test_e2e.py and scheduling_replay.json.</footer>
+</div>
+
+<script>
+(function(){
+const NS='http://www.w3.org/2000/svg';
+function svg(w,h,inner,label){return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${label}">${inner}</svg>`;}
+function put(id,html){const el=document.getElementById(id); if(el) el.innerHTML=html;}
+
+/* ---------- Fig 5: surge ---------- */
+(function(){
+  const mean=[0.09,0.07,0.06,0.05,0.05,0.07,0.1,0.17,0.26,0.32,0.35,0.35,0.33,0.33,0.35,0.37,0.39,0.4,0.4,0.37,0.32,0.24,0.17,0.12];
+  const p90=[0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1];
+  const W=520,H=250,L=34,R=12,T=16,B=34, iw=W-L-R, ih=H-T-B, max=6;
+  const x=i=>L+i*iw/24, y=v=>T+ih-v/max*ih, bw=iw/24;
+  let s='';
+  for(let v=0;v<=max;v++){s+=`<line class="gl" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${L-8}" y="${y(v)+4}" text-anchor="end">${v}</text>`;}
+  mean.forEach((m,i)=>{s+=`<rect class="f-mean" x="${x(i)+2}" y="${y(m)}" width="${bw-4}" height="${y(0)-y(m)}" rx="2"/>`;});
+  let d=''; p90.forEach((p,i)=>{d+=(i?`L${x(i)},${y(p)}`:`M${x(i)},${y(p)}`)+`L${x(i+1)},${y(p)}`;});
+  s+=`<path class="s-p90" d="${d}"/>`;
+  [0,6,12,18,23].forEach(i=>{s+=`<text class="ax" x="${x(i)+bw/2}" y="${H-12}" text-anchor="middle">${String(i).padStart(2,'0')}:00</text>`;});
+  const cx=x(18)+bw/2;
+  s+=`<rect class="f-crit" x="${x(18)+2}" y="${y(5)}" width="${bw-4}" height="${y(0)-y(5)}" rx="2" opacity=".9"/>`;
+  s+=`<text class="lbl" x="${cx-8}" y="${y(5)-4}" text-anchor="end" style="fill:var(--crit)">5 in the last hour</text>`;
+  s+=`<text class="lblm" x="${x(8)}" y="${y(1)-8}">p90 = 1</text>`;
+  s+=`<line class="axl" x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}"/>`;
+  put('c-surge',svg(W,H,s,'Suncrest hourly consults: baseline average and p90 versus 5 in the last hour'));
+})();
+
+/* ---------- Fig 6: stage timers ---------- */
+(function(){
+  const rows=[
+    ['CON-2110','Assigned, not contacted','Stroke',12,3,8],
+    ['CON-2102','Waiting for CT/CTA','Stroke',26,12,20],
+    ['CON-2105','Triaged, no doctor','Stroke',10.92,5,10],
+    ['CON-2115','Note pending','General',50,45,90],
+    ['CON-2118','Note pending','General',45,45,90],
+    ['CON-2117','Note pending','General',39,45,90],
+    ['CON-2103','Note pending','General',34,45,90],
+    ['CON-2114','Triaged, no doctor','Stroke',2.83,5,10],
+    ['CON-2116','Note pending','General',22,45,90],
+    ['CON-2113','Note pending','Stroke',8,30,45],
+  ];
+  const W=520,rowH=28,T=22,L=190,R=56,H=T+rows.length*rowH+24, iw=W-L-R, max=1.6;
+  const x=v=>L+Math.min(v,max)/max*iw;
+  let s=`<text class="ax" x="${x(1)}" y="12" text-anchor="middle">critical limit</text>`;
+  rows.forEach((r,i)=>{
+    const [id,stage,type,m,w,c]=r, yy=T+i*rowH, ratio=m/c, wr=w/c;
+    s+=`<rect class="f-track" x="${L}" y="${yy+6}" width="${iw}" height="14" rx="4"/>`;
+    s+=`<rect class="f-zone-w" x="${x(wr)}" y="${yy+6}" width="${x(1)-x(wr)}" height="14"/>`;
+    s+=`<rect class="f-zone-c" x="${x(1)}" y="${yy+6}" width="${x(max)-x(1)}" height="14" rx="4"/>`;
+    const cls=ratio>=1?'f-crit':(ratio>=wr?'f-warn':'f-ok');
+    s+=`<rect class="${cls}" x="${L}" y="${yy+9}" width="${Math.max(2,x(ratio)-L)}" height="8" rx="3"/>`;
+    s+=`<text class="mono-t" x="0" y="${yy+13}">${id}</text>`;
+    s+=`<text class="lblm" x="0" y="${yy+25}" style="font-size:10.5px">${stage} · ${type}</text>`;
+    const mm=Math.floor(m), ss=Math.round((m-mm)*60);
+    s+=`<text class="lbl" x="${W-R+6}" y="${yy+18}" style="font-size:11.5px">${mm}${ss?':'+String(ss).padStart(2,'0'):''}/${c}m</text>`;
+  });
+  s+=`<line x1="${x(1)}" x2="${x(1)}" y1="16" y2="${H-20}" class="s-crit" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+  put('c-timers',svg(W,H,s,'Minutes in stage versus critical limit for ten open consults'));
+})();
+
+/* ---------- Fig 7: credential heatmap ---------- */
+(function(){
+  const hosp=[['SYN-001','Cedar Ridge',2],['SYN-002','Bluewater',1],['SYN-003','Redwood Univ.',2],['SYN-004','Meadowlands',1],['SYN-005','Suncrest ⚡',2],['SYN-006','Highland Valley',1],['SYN-007','Silver Oak',1],['SYN-008','Northfield',2],['SYN-009','Lakeview',1],['SYN-010','Oak Valley',1],['SYN-011','Harbor Regional',1],['SYN-012','Westbridge',1]];
+  const docs=[['PHY-001','Patel','on','20:00'],['PHY-002','Kim','on','20:00'],['PHY-003','Ramirez','on','19:00'],['PHY-004','Brooks','on','21:00'],['PHY-005','Shah','on','20:00'],['PHY-006','Lee','on','19:00'],['PHY-007','Torres','on','22:00'],['PHY-008','Williams','unav','20:00'],
+              ['PHY-009','Okafor','off'],['PHY-010','Alvarez','off'],['PHY-011','Cho','night'],['PHY-012','Haddad','night'],['PHY-013','Brennan','off'],['PHY-014','Menon','off']];
+  const cred={'PHY-001':'1..1.1.11.11','PHY-002':'.1....11.11.','PHY-003':'1..11...1..1','PHY-004':'1.1..11.1...','PHY-005':'..111..1..1.','PHY-006':'1..111.11.11','PHY-007':'.1.........1','PHY-008':'.....11..11.','PHY-009':'...11..1.1..','PHY-010':'.11..11.....','PHY-011':'1..11..11.1.','PHY-012':'.11..11..1.1','PHY-013':'....1...111.','PHY-014':'1...1....1..'};
+  const after20=new Set(['PHY-004','PHY-007','PHY-011','PHY-012']);
+  let h='<table class="hm"><thead><tr><th></th>';
+  docs.forEach((d,j)=>{ if(j===8) h+='<th></th>'; h+=`<th class="rot"><div>${d[1]} <span style="color:var(--muted)">${d[0].slice(4)}</span></div></th>`;});
+  h+='<th></th><th class="rot"><div>Now 18:20</div></th><th class="rot"><div>After 20:00</div></th></tr>';
+  h+='<tr><th></th><th class="grp" colspan="8">On shift</th><th></th><th class="grp" colspan="6">Off shift / night</th><th></th><th class="grp" colspan="2">Have / need</th></tr></thead><tbody>';
+  hosp.forEach((hp,i)=>{
+    h+=`<tr><td class="hn">${hp[1]}</td>`;
+    let now=0, aft=0;
+    docs.forEach((d,j)=>{
+      if(j===8) h+='<td class="gap"></td>';
+      const c=cred[d[0]][i]==='1';
+      let cls='no', tip='';
+      if(c){ cls=d[2]; if(d[2]==='on') now++; if(after20.has(d[0])) aft++; tip=`${d[1]} credentialed at ${hp[1]}`; }
+      h+=`<td class="${cls}" title="${tip}"></td>`;
+    });
+    const need=hp[2];
+    h+=`<td class="gap"></td><td class="ct">${now} / ${need}</td><td class="ct${aft<need?' short':''}">${aft} / ${need}${aft<need?' ▲':''}</td></tr>`;
+  });
+  h+='</tbody></table>';
+  put('c-heat',h);
+})();
+
+/* ---------- Fig 8: coverage step charts ---------- */
+function covChart(id,name,without,withO,req,ymax){
+  const W=460,H=230,L=30,R=14,T=26,B=32,iw=W-L-R,ih=H-T-B;
+  const t0=18*60+20,t1=20*60+20;
+  const x=m=>L+(m-t0)/(t1-t0)*iw, y=v=>T+ih-v/ymax*ih;
+  let s=`<text class="lbl" x="${L}" y="14">${name}</text>`;
+  for(let v=0;v<=ymax;v++) s+=`<line class="gl" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${L-8}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
+  without.forEach(([a,b,v])=>{ if(v<req) s+=`<rect class="f-short" x="${x(a)}" y="${T}" width="${x(b)-x(a)}" height="${ih}"/>`; });
+  const path=seg=>seg.map(([a,b,v],k)=>(k?`L${x(a)},${y(v)}`:`M${x(a)},${y(v)}`)+`L${x(b)},${y(v)}`).join('');
+  s+=`<line x1="${L}" x2="${W-R}" y1="${y(req)}" y2="${y(req)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  s+=`<text class="lblm" x="${L+6}" y="${y(req)-6}">minimum ${req}</text>`;
+  s+=`<path d="${path(without)}" fill="none" class="s-crit" stroke-width="3"/>`;
+  s+=`<path d="${path(withO)}" fill="none" class="s-ok" stroke-width="3" stroke-dasharray="1 0" opacity=".9" transform="translate(0,-3)"/>`;
+  [[18*60+20,'18:20'],[19*60,'19:00'],[19*60+30,'19:30'],[20*60,'20:00'],[20*60+20,'20:20']].forEach(([m,l])=>{s+=`<text class="ax" x="${x(m)}" y="${H-10}" text-anchor="middle">${l}</text><line class="axl" x1="${x(m)}" x2="${x(m)}" y1="${y(0)}" y2="${y(0)+4}"/>`;});
+  const last=without[without.length-1], lastW=withO[withO.length-1];
+  s+=`<text class="lbl" x="${x(20*60+10)}" y="${y(last[2])+16}" text-anchor="middle" style="fill:var(--crit)">${last[2]} ▲</text>`;
+  s+=`<text class="lbl" x="${x(20*60+10)}" y="${y(lastW[2])-9}" text-anchor="middle" style="fill:var(--ok)">${lastW[2]} ✓</text>`;
+  s+=`<line class="axl" x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}"/>`;
+  put(id,svg(W,H,s,`${name}: credentialed doctors over the next two hours`));
+}
+const m=(h,mi)=>h*60+mi;
+covChart('c-cov-005','Suncrest Medical Pavilion (surge, minimum 2)',
+  [[m(18,20),m(19,0),3],[m(19,0),m(20,0),2],[m(20,0),m(20,20),1]],
+  [[m(18,20),m(18,35),3],[m(18,35),m(19,0),4],[m(19,0),m(20,0),3],[m(20,0),m(20,20),2]],2,5);
+covChart('c-cov-008','Northfield Medical (minimum 2)',
+  [[m(18,20),m(19,0),4],[m(19,0),m(20,0),4],[m(20,0),m(20,20),1]],
+  [[m(18,20),m(18,35),4],[m(18,35),m(19,0),5],[m(19,0),m(20,0),5],[m(20,0),m(20,20),2]],2,5);
+
+/* ---------- Fig 9: eligibility matrix ---------- */
+(function(){
+  const rules=['Opted in','Credentialed at a short hospital','10 h rest','7-day hours + 3 h ≤ 60','No clash with next shift','≥ 2 h after getting online','Offer limits'];
+  const docs=[
+    ['Dr. Grace Okafor','PHY-009',[1,1,1,1,1,1,1],'Suncrest, Northfield · 11 h rest · 36 h → 39 · next shift tomorrow 19:00 · online in 15 min'],
+    ['Dr. Ben Alvarez','PHY-010',[1,0,1,1,1,1,1],'Credentialed at neither short hospital'],
+    ['Dr. Hannah Cho','PHY-011',[1,1,1,1,0,1,1],'Her night shift starts 19:00'],
+    ['Dr. Omar Haddad','PHY-012',[0,0,1,1,0,1,1],'Not opted in · no credential at either · night shift 20:00'],
+    ['Dr. Lucy Brennan','PHY-013',[0,1,1,1,1,1,1],'Not opted in'],
+    ['Dr. Ravi Menon','PHY-014',[1,1,1,0,1,1,1],'59 h this week + 3 h = 62'],
+  ];
+  let h='<table class="em"><thead><tr><th>Doctor</th>'+rules.map(r=>`<th>${r}</th>`).join('')+'<th>Result</th></tr></thead><tbody>';
+  docs.forEach(d=>{
+    const ok=d[2].every(Boolean);
+    h+=`<tr class="${ok?'win':''}"><td><b>${d[0]}</b> <span class="mono" style="color:var(--muted)">${d[1]}</span><br><span class="note">${d[3]}</span></td>`;
+    d[2].forEach(v=>{h+=`<td>${v?'<span class="pass" aria-label="pass">✓</span>':'<span class="fail" aria-label="fail">✕</span>'}</td>`;});
+    h+=`<td>${ok?'<span class="res y">Eligible · #1</span>':'<span class="res n">Not eligible</span>'}</td></tr>`;
+  });
+  h+='</tbody></table>';
+  put('c-elig',h);
+})();
+
+/* ---------- Fig 10: load chart, waffles, scarcity ---------- */
+(function(){
+  const rows=[['Shah',15],['Lee',15],['Kim',14],['Ramirez',14],['Brooks',14],['Patel',12],['Williams',10],['Torres',6],['Okafor, default',0],['Okafor, seeded',14]];
+  const W=460,rowH=22,T=10,L=110,R=36,H=T+rows.length*rowH+26,iw=W-L-R,max=16;
+  const x=v=>L+v/max*iw;
+  let s='';
+  [0,4,8,12,16].forEach(v=>{s+=`<line class="gl" x1="${x(v)}" x2="${x(v)}" y1="${T}" y2="${H-22}"/><text class="ax" x="${x(v)}" y="${H-8}" text-anchor="middle">${v}</text>`;});
+  rows.forEach((r,i)=>{
+    const yy=T+i*rowH, j=r[0].startsWith('Okafor'), cls=j?(r[0].includes('seeded')?'f-ok':'f-crit'):'f-barm';
+    s+=`<text class="${j?'lbl':'lblm'}" x="${L-8}" y="${yy+14}" text-anchor="end">${r[0]}</text>`;
+    s+=`<rect class="${cls}" x="${L}" y="${yy+4}" width="${Math.max(3,x(r[1])-L)}" height="13" rx="3"/>`;
+    s+=`<text class="lbl" x="${x(r[1])+6}" y="${yy+15}" style="font-size:11px">${r[1]}</text>`;
+  });
+  s+=`<line x1="${x(14)}" x2="${x(14)}" y1="${T}" y2="${H-22}" stroke="var(--ink)" stroke-dasharray="4 3"/>`;
+  put('c-load',svg(W,H,s,'Consults this shift per on-shift doctor, and the new doctor at 0 versus seeded at the median of 14'));
+  const waffle=(id,n)=>{let h='';for(let i=0;i<20;i++)h+=`<i class="${i<n?'j':''}"></i>`;put(id,h);};
+  waffle('w1',10); waffle('w2',5);
+
+  const W2=460,H2=170,L2=150,R2=40,iw2=W2-L2-R2,mx=2;
+  const x2=v=>L2+v/mx*iw2;
+  let t='';
+  [0,1,2].forEach(v=>{t+=`<line class="gl" x1="${x2(v)}" x2="${x2(v)}" y1="20" y2="${H2-30}"/><text class="ax" x="${x2(v)}" y="${H2-14}" text-anchor="middle">${v}</text>`;});
+  t+=`<text class="lblm" x="${L2}" y="12">Hospitals that lose their last eligible backup</text>`;
+  [['Dr. Patel PHY-001','least busy',2,'f-crit'],['Dr. Ramirez PHY-003','our pick',1,'f-ok']].forEach((r,i)=>{
+    const yy=34+i*50;
+    t+=`<text class="lbl" x="${L2-10}" y="${yy+14}" text-anchor="end">${r[0]}</text><text class="lblm" x="${L2-10}" y="${yy+29}" text-anchor="end">${r[1]}</text>`;
+    t+=`<rect class="${r[3]}" x="${L2}" y="${yy}" width="${x2(r[2])-L2}" height="26" rx="5"/>`;
+    t+=`<text class="lbl" x="${x2(r[2])+8}" y="${yy+18}" style="font-size:15px">${r[2]}</text>`;
+  });
+  put('c-scarce',svg(W2,H2,t,'Scarcity cost: Patel 2 hospitals, Ramirez 1 hospital'));
+})();
+
+/* ---------- Fig 12: benchmark ---------- */
+(function(){
+  const rows=[['Rules, as-is policy',57.75,'f-bar'],['Rules, specialized policy',99.47,'f-crit'],['ML ranking, as-is policy',57.68,'f-bar2']];
+  const W=460,H=150,L=170,R=50,iw=W-L-R,max=120;
+  const x=v=>L+v/max*iw;
+  let s='';
+  [0,30,60,90,120].forEach(v=>{s+=`<line class="gl" x1="${x(v)}" x2="${x(v)}" y1="6" y2="${H-26}"/><text class="ax" x="${x(v)}" y="${H-10}" text-anchor="middle">${v}</text>`;});
+  rows.forEach((r,i)=>{const yy=10+i*36;
+    s+=`<text class="lblm" x="${L-10}" y="${yy+16}" text-anchor="end">${r[0]}</text>`;
+    s+=`<rect class="${r[2]}" x="${L}" y="${yy+3}" width="${x(r[1])-L}" height="20" rx="4"/>`;
+    s+=`<text class="lbl" x="${x(r[1])+6}" y="${yy+18}">${r[1].toFixed(1)}</text>`;});
+  put('c-bench',svg(W,H,s,'Mean capped wait in minutes: 57.8, 99.5, 57.7'));
+})();
+})();
+</script>
+
+</body>
+</html>
